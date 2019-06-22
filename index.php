@@ -21,29 +21,68 @@ div { column-count: 3; }
 #wrapper { width:800px; margin:40px auto; }
 
 /* LIST #4 */
-#list4 { width:75%; font-family:Georgia, Times, serif; font-size:15px;}
-#list4 ul { list-style: none; }
-#list4 ul li { float: left;	width: 33%;}
-#list4 ul li a { display:block; text-decoration:none; color:#000000; background-color:#FFFFFF; line-height:30px;
-	border-bottom-style:solid; border-bottom-width:1px; border-bottom-color:#CCCCCC; padding-left:10px; cursor:pointer; }
-#list4 ul li a:hover { color:#FFFFFF; background:#4863A0; background-repeat:repeat-x; }
-#list4 ul li a strong { margin-right:10px; }
+.list4 { float: left; width:75%; font-family:Georgia, Times, serif; font-size:15px;}
+.list4 ul { list-style: none; }
+.list4 ul li { float: left;	width: 33%;}
+.list4 ul li a { display:block; text-decoration:none; color:#000000; background-color:#FFFFFF; line-height:30px;border-bottom-style:solid; border-bottom-width:1px; border-bottom-color:#CCCCCC;padding-left:10px; cursor:pointer; }
+.list4 ul li a:hover { color:#FFFFFF; background:#4863A0; background-repeat:repeat-x; }
+.list4 ul li a strong { margin-right:10px; }
+.space { display: block; float: left; width: 100%; }
 </style>
 </head>
 <body>
-<div id="list4">
+<div class="list4">
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', true);
+# Get Vhosts files
+$path = '/etc/apache2/sites-enabled'; # change to suit your needs
+$a_directory = scandir($path);
+$a_conf_files = array_diff($a_directory, array('..', '.'));
+$info = array(); $x=0;
+foreach($a_conf_files as $conf_file){
+ 	$Thisfile   = fopen($path .'/'.$conf_file, 'r')or die('No open ups..');
+    while(!feof($Thisfile)){
+        $line = fgets($Thisfile);
+        $line = trim($line);
+       // CHECK IF STRING BEGINS WITH ServerAlias
+        $tokens = explode(' ',$line);
+        if(!empty($tokens)){
+            if(strtolower($tokens[0]) == 'servername'){
+                $info[$x]['ServerName'] = $tokens[1];
+            }
+            if(strtolower($tokens[0]) == 'documentroot'){
+                $info[$x]['DocumentRoot'] = $tokens[1];
+            }
+            if(strtolower($tokens[0]) == 'errorlog'){
+                $info[$x]['ErrorLog'] = $tokens[1];
+            }
+            if(strtolower($tokens[0]) == 'serveralias'){
+                $info[$x]['ServerAlias'] = $tokens[1];
+            }
+        }
+    }
+//fclose($file);
+$x++;
+}
+//print_r($info);
 $d = dir(getcwd());
 $blacklist = array('.', '..', '.directory');
-echo "Server: ".gethostname()."<br>";
-echo "Software: ".($_SERVER['SERVER_SOFTWARE']);
-echo "<h2>Path: " . $d->path . "\n</h2>";
+echo "Server: ".gethostname()."<br/>";
+echo "Software: ".($_SERVER['SERVER_SOFTWARE'])."<br/>";
+echo "<h2>Virtual Hosts\n</h2>";
+echo "<ul>";
+foreach ($info as $infovalue) {
+	if(isset($infovalue['ServerName'])){
+		echo "<li><a href='http://".$infovalue['ServerName']."'>".$infovalue['ServerName']."</a></li>";
+	}
+}
+echo "</ul>";
+echo "</div><div class='space'>&nbsp;</div><div class='list4'>";
 echo "<ul>";
 while (false !== ($entry = $d->read()))
 {
-        if (!in_array($entry, $blacklist))
+ if (!in_array($entry, $blacklist))
  {
    echo "<li><a href='{$entry}'>{$entry}</a></li>";
  }
