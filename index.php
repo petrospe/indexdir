@@ -1,7 +1,14 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
+<?php
+if(preg_match('/^(10|192|172)\./', $_SERVER['REMOTE_ADDR']))
+{
+    header('Location: http://example.com');
+    die;
+}
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Index</title>
 <style type="text/css">
 /* BASIC RESET */
@@ -15,7 +22,7 @@ h2 a { display: block; text-decoration: none; margin: 0 0 30px 0; font: italic 4
 h2 a:hover { color: #90bcd0; }
 h3 { font-style:italic; border-left:10px solid #eee; padding:10px 20px; margin:30px 0; color:#eee; }
 h3 code { display:block; }
-div { column-count: 3; }
+/* div { column-count: 2; } */
 
 /* WRAPPER */
 #wrapper { width:800px; margin:40px auto; }
@@ -70,21 +77,30 @@ $d = dir(getcwd());
 $blacklist = array('.', '..', '.directory');
 echo "Server: ".gethostname()."<br/>";
 echo "Software: ".($_SERVER['SERVER_SOFTWARE'])."<br/>";
-echo "<h2>Virtual Hosts\n</h2>";
-echo "<ul>";
+$i = 0;
+$len = count($info);
 foreach ($info as $infovalue) {
-	if(isset($infovalue['ServerName'])){
-		echo "<li><a href='http://".$infovalue['ServerName']."'>".$infovalue['ServerName']."</a></li>";
-	}
+    if(isset($infovalue['ServerName'])){
+        if($i==0){
+            echo "<h2>Virtual Hosts\n</h2>";
+            echo "<ul>";
+        }
+        echo "<li><a href='http://".$infovalue['ServerName']."' target='_blank'>".$infovalue['ServerName']."</a></li>";
+        array_push($blacklist, substr($infovalue['ServerName'], 0, -10));
+        if ($i == $len - 1) {
+            echo "</ul>";
+        }
+        $i++;
+    }
 }
-echo "</ul>";
 echo "</div><div class='space'>&nbsp;</div><div class='list4'>";
+echo "<h2>Path: " . $d->path . "\n</h2>";
 echo "<ul>";
 while (false !== ($entry = $d->read()))
 {
- if (!in_array($entry, $blacklist))
+    if (!in_array($entry, $blacklist))
  {
-   echo "<li><a href='{$entry}'>{$entry}</a></li>";
+   echo "<li><a href='{$entry}' target='_blank'>{$entry}</a></li>";
  }
 }
 echo "</ul>";
