@@ -44,53 +44,57 @@ error_reporting(E_ALL);
 ini_set('display_errors', true);
 # Get Vhosts files
 $path = '/etc/apache2/sites-enabled'; # change to suit your needs
-$a_directory = scandir($path);
-$a_conf_files = array_diff($a_directory, array('..', '.'));
-$info = array(); $x=0;
-foreach($a_conf_files as $conf_file){
- 	$Thisfile   = fopen($path .'/'.$conf_file, 'r')or die('No open ups..');
-    while(!feof($Thisfile)){
-        $line = fgets($Thisfile);
-        $line = trim($line);
-       // CHECK IF STRING BEGINS WITH ServerAlias
-        $tokens = explode(' ',$line);
-        if(!empty($tokens)){
-            if(strtolower($tokens[0]) == 'servername'){
-                $info[$x]['ServerName'] = $tokens[1];
-            }
-            if(strtolower($tokens[0]) == 'documentroot'){
-                $info[$x]['DocumentRoot'] = $tokens[1];
-            }
-            if(strtolower($tokens[0]) == 'errorlog'){
-                $info[$x]['ErrorLog'] = $tokens[1];
-            }
-            if(strtolower($tokens[0]) == 'serveralias'){
-                $info[$x]['ServerAlias'] = $tokens[1];
+if(is_dir($path)){
+    $a_directory = scandir($path);
+    $a_conf_files = array_diff($a_directory, array('..', '.'));
+    $info = array(); $x=0;
+    foreach($a_conf_files as $conf_file){
+        $Thisfile   = fopen($path .'/'.$conf_file, 'r')or die('No open ups..');
+        while(!feof($Thisfile)){
+            $line = fgets($Thisfile);
+            $line = trim($line);
+           // CHECK IF STRING BEGINS WITH ServerAlias
+            $tokens = explode(' ',$line);
+            if(!empty($tokens)){
+                if(strtolower($tokens[0]) == 'servername'){
+                    $info[$x]['ServerName'] = $tokens[1];
+                }
+                if(strtolower($tokens[0]) == 'documentroot'){
+                    $info[$x]['DocumentRoot'] = $tokens[1];
+                }
+                if(strtolower($tokens[0]) == 'errorlog'){
+                    $info[$x]['ErrorLog'] = $tokens[1];
+                }
+                if(strtolower($tokens[0]) == 'serveralias'){
+                    $info[$x]['ServerAlias'] = $tokens[1];
+                }
             }
         }
+    //fclose($file);
+    $x++;
     }
-//fclose($file);
-$x++;
 }
 //print_r($info);
 $d = dir(getcwd());
 $blacklist = array('.', '..', '.directory');
 echo "Server: ".gethostname()."<br/>";
 echo "Software: ".($_SERVER['SERVER_SOFTWARE'])."<br/>";
-$i = 0;
-$len = count($info);
-foreach ($info as $infovalue) {
-    if(isset($infovalue['ServerName'])){
-        if($i==0){
-            echo "<h2>Virtual Hosts\n</h2>";
-            echo "<ul>";
+if(is_dir($path)){
+    $i = 0;
+    $len = count($info);
+    foreach ($info as $infovalue) {
+        if(isset($infovalue['ServerName'])){
+            if($i==0){
+                echo "<h2>Virtual Hosts\n</h2>";
+                echo "<ul>";
+            }
+            echo "<li><a href='http://".$infovalue['ServerName']."' target='_blank'>".$infovalue['ServerName']."</a></li>";
+            array_push($blacklist, substr($infovalue['ServerName'], 0, -10));
+            if ($i == $len - 1) {
+                echo "</ul>";
+            }
+            $i++;
         }
-        echo "<li><a href='http://".$infovalue['ServerName']."' target='_blank'>".$infovalue['ServerName']."</a></li>";
-        array_push($blacklist, substr($infovalue['ServerName'], 0, -10));
-        if ($i == $len - 1) {
-            echo "</ul>";
-        }
-        $i++;
     }
 }
 echo "</div><div class='space'>&nbsp;</div><div class='list4'>";
